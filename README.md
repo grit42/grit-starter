@@ -1,6 +1,6 @@
 # grit starter
 
-This repo can be used to run the grit Scientific Data Management System locally or on a remote server.
+This repo can be used to run the [grit Scientific Data Management System](https://github.com/grit42/grit) locally or on a remote server.
 
 ## Requirements
 
