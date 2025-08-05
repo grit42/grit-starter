@@ -92,12 +92,15 @@ docker compose up --no-deps --force-recreate app
 
 ## Upgrading from previous sample docker compose
 
-1.  Ensure the values in the `.env` file match the environment in the compose file used to run the app before
-2.  In the directory containing the new `docker-compose.yml` file, start the new `db` service to create the volume
+1. Clone this repo or download and extract the [zip](https://github.com/grit42/grit-starter/archive/refs/heads/main.zip)
+2. Copy the content of `.env.template` to `.env`
+    * Some users may need to enable display of hidden files if using a file explorer
+3.  Ensure the values in the `.env` file match the environment in the compose file used to run the app before
+4.  In the directory containing the new `docker-compose.yml` file, start the new `db` service to create the volume
     ```sh
     docker compose up -d db
     ```
-3.  In the directory containing the previous `docker-compose.yml` file, copy database files into the volume using a helper container, for example on a Unix system:
+5.  In the directory containing the previous `docker-compose.yml` file, copy database files into the volume using a helper container, for example on a Unix system:
     ```sh
     docker run --rm \
         -v ./postgres-data:/from \
@@ -105,7 +108,7 @@ docker compose up --no-deps --force-recreate app
         alpine \
         sh -c "cd /from && tar cf - . | tar xf - -C /to"
     ```
-4. Fix database files ownership
+6. Fix database files ownership
     ```sh
     docker run --rm \
       -v grit_postgres_data:/data \
