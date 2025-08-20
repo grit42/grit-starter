@@ -1,4 +1,3 @@
----
 # grit starter installation guides
 
 This document provides step-by-step instructions for installing and running the [grit Scientific Data Management System](https://github.com/grit42/grit) in different environments.
@@ -9,11 +8,10 @@ This document provides step-by-step instructions for installing and running the 
 * [Cloud Server Installation](#cloud-server-installation)
 * [Mail Service Configuration](#mail-service-configuration)
 * [Maintaining the App](#maintaining-the-app)
-
-* [Backup the Database](#backup-the-database)
-* [Restore the Latest Backup](#restore-the-latest-backup)
-* [Upgrading to a New Version](#upgrading-to-a-new-version)
-* [Upgrading from Previous Sample Docker Compose](#upgrading-from-previous-sample-docker-compose)
+    * [Backup the Database](#backup-the-database)
+    * [Restore the Latest Backup](#restore-the-latest-backup)
+    * [Upgrading to a New Version](#upgrading-to-a-new-version)
+    * [Upgrading from Previous Sample Docker Compose](#upgrading-from-previous-sample-docker-compose)
 ---
 
 ## Local Installation (Windows)
