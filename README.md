@@ -1,117 +1,327 @@
-# grit starter
+---
+# grit starter installation guides
 
-This repo can be used to run the [grit Scientific Data Management System](https://github.com/grit42/grit) locally or on a remote server.
+This document provides step-by-step instructions for installing and running the [grit Scientific Data Management System](https://github.com/grit42/grit) in different environments.
 
-## Requirements
+* [Local Installation (Windows)](#local-installation-windows)
+* [Local Installation (Mac)](#local-installation-mac)
+* [Local Installation (Linux)](#local-installation-linux)
+* [Cloud Server Installation](#cloud-server-installation)
+* [Mail Service Configuration](#mail-service-configuration)
+* [Maintaining the App](#maintaining-the-app)
 
-- [docker](https://docs.docker.com/get-started/get-docker/)
-- [docker compose](https://docs.docker.com/compose/install/)
+* [Backup the Database](#backup-the-database)
+* [Restore the Latest Backup](#restore-the-latest-backup)
+* [Upgrading to a New Version](#upgrading-to-a-new-version)
+* [Upgrading from Previous Sample Docker Compose](#upgrading-from-previous-sample-docker-compose)
+---
 
-Before continuing, ensure the Docker daemon is running.
+## Local Installation (Windows)
 
-### Server requirements
+### Requirements
 
-grit has been shown to run smoothly on modest hardware such as [Hetzner CPX21](https://www.hetzner.com/cloud/) with over 200 millions data points.
+- [Docker Desktop](https://docs.docker.com/get-started/get-docker/)
+- Make sure Docker Desktop is running before continuing.
 
-Indicative requirements for less than 10 concurrent users:
-- 2 vCPUs @ 3 GHz
-- 4 GB RAM
-- 40 GB storage
+### Steps
 
-## Running the app
+1. **Download the project files**
 
-### Get the environment
+   Either clone the repository:
 
-1. Clone this repo or download and extract the [zip](https://github.com/grit42/grit-starter/archive/refs/heads/main.zip)
-2. Copy the content of `.env.template` to `.env`
-    * Some users may need to enable display of hidden files if using a file explorer
+   ```powershell
+   git clone https://github.com/grit42/grit-starter.git
+   cd grit-starter
+   ```
 
-Subsequent steps of this guide are to be executed in the cloned repository or the extracted zip unless instructed otherwise.
+   Or download and unzip:
+   [Download ZIP](https://github.com/grit42/grit-starter/archive/refs/heads/main.zip)
 
-### Start the database and app services
+2. **Prepare the environment file**
 
-Run the following command in a terminal to start the application:
+   In the project folder, copy `.env.template` to `.env`:
+
+   ```powershell
+   copy .env.template .env
+   ```
+
+   If using File Explorer, note that `.env.template` might be hidden.
+
+3. **Start grit**
+
+   In the project folder, run:
+
+   ```powershell
+   docker compose up
+   ```
+
+   The first run may take several minutes as images are downloaded.
+
+4. **Activate the admin account**
+
+   Open [http://localhost:3000/app/core/activate/admin](http://localhost:3000/app/core/activate/admin) and set a password for the `admin` user.
+
+---
+
+## Local Installation (Mac)
+
+### Requirements
+
+- [Docker Desktop](https://docs.docker.com/get-started/get-docker/)
+- Make sure Docker Desktop is running before continuing.
+
+### Steps
+
+1. **Download the project files**
+
+   Either clone the repository:
+
+   ```sh
+   git clone https://github.com/grit42/grit-starter.git
+   cd grit-starter
+   ```
+
+   Or download and unzip:
+   [Download ZIP](https://github.com/grit42/grit-starter/archive/refs/heads/main.zip)
+
+2. **Prepare the environment file**
+
+   In the project folder, copy `.env.template` to `.env`:
+
+   ```sh
+   cp .env.template .env
+   ```
+
+   If using Finder, make sure hidden files are visible.
+
+3. **Start grit**
+
+   In the project folder, run:
+
+   ```sh
+   docker compose up
+   ```
+
+   The first run may take several minutes as images are downloaded.
+
+4. **Activate the admin account**
+
+   Open [http://localhost:3000/app/core/activate/admin](http://localhost:3000/app/core/activate/admin) and set a password for the `admin` user.
+
+---
+
+## Local Installation (Linux)
+
+### Requirements
+
+- [Docker](https://docs.docker.com/get-started/get-docker/)
+
+- Ensure the Docker daemon is running:
+
+  ```sh
+  systemctl status docker
+  ```
+
+- If the Docker daemon is not running, start it if it's not
+
+  ```sh
+  systemctl start docker
+  ```
+
+### Steps
+
+1. **Download the project files**
+
+   Clone the repository:
+
+   ```sh
+   git clone https://github.com/grit42/grit-starter.git
+   cd grit-starter
+   ```
+
+   Or download and unzip:
+   [Download ZIP](https://github.com/grit42/grit-starter/archive/refs/heads/main.zip)
+
+2. **Prepare the environment file**
+
+   In the project folder, copy `.env.template` to `.env`:
+
+   ```sh
+   cp .env.template .env
+   ```
+
+   If using a file explorer, make sure hidden files are visible.
+
+3. **Start grit**
+
+   In the project folder, run:
+
+   ```sh
+   docker compose up
+   ```
+
+4. **Activate the admin account**
+
+   Open [http://localhost:3000/app/core/activate/admin](http://localhost:3000/app/core/activate/admin) and set a password for the `admin` user.
+
+---
+
+## Cloud Server Installation
+
+### Requirements
+
+- A cloud server with at least:
+
+  - 2 vCPUs @ 3 GHz
+  - 4 GB RAM
+  - 40 GB storage
+
+- Examples: Hetzner CPX21, AWS EC2 t3.medium, DigitalOcean Droplet.
+
+- Docker installed.
+
+- Domain name and SSL certificate recommended for production use.
+
+### Steps
+
+1. **Prepare your server**
+
+   - Connect via SSH:
+
+     ```sh
+     ssh user@your-server-ip
+     ```
+
+   - Ensure Docker is installed, and the Docker daemon is running:
+
+     ```sh
+     docker --version
+     systemctl status docker
+     ```
+
+2. **Download the project files**
+
+   ```sh
+   git clone https://github.com/grit42/grit-starter.git
+   cd grit-starter
+   ```
+
+   Or download and extract the ZIP file.
+
+   ```sh
+   # Using curl
+   curl -LO https://github.com/grit42/grit-starter/archive/refs/heads/main.zip
+
+   # Or using wget
+   wget https://github.com/grit42/grit-starter/archive/refs/heads/main.zip
+   ```
+
+3. **Prepare the environment file**
+
+   ```sh
+   cp .env.template .env
+   ```
+
+   Edit `.env` to set `GRIT_SERVER_URL` to your server’s domain:
+
+   ```
+   GRIT_SERVER_URL=https://grit.example.com
+   ```
+
+4. **Start grit**
+
+   ```sh
+   docker compose up -d
+   ```
+
+   The `-d` flag runs containers in the background.
+
+5. **Activate the admin account**
+
+   Visit:
+
+   ```
+   https://grit.example.com/app/core/activate/admin
+   ```
+
+   Set a password for the `admin` user.
+
+---
+
+## Mail Service Configuration
+
+Some grit features (user management, password reset, two-factor authentication) require email.
+
+In `.env`, set the following variables:
 
 ```sh
-docker compose up
-```
-
-### Activate the admin user
-
-The `admin` user must be activated to start using the application the first time it is started.
-
-Navigate to `/app/core/activate/admin` (e.g. when running locally http://localhost:3000/app/core/activate/admin) to activate the `admin` user by configuring its password.
-
-## Mail service configuration
-
-User management, password recovery and two-factor authentication require an SMTP mail service.
-
-The SMTP mail service can be configured through environment variables in the `.env` file.
-
-The following variables are required:
-```sh
-# Mailer configuration
 SMTP_SERVER=smtp.example.com
 SMTP_PORT=587
-SMTP_TOKEN=SMTP_TOKEN
 SMTP_USER=user@example.com
-
-# The URL at which grit is running
-# used to build activation and password reset URLs
-GRIT_SERVER_URL=https://grit.example.com
+SMTP_TOKEN=your_password_or_token
+GRIT_SERVER_URL=https://yourdomain.com
 ```
 
-## Maintaining the app
+---
 
-### Backup the database
+## Maintaining the App
 
-It is a good idea to back up the database regularly and before upgrading.
-If a backup already exists, it will be overwritten when making a new backup.
+### Backup the Database
 
-Run the following command to back up the database:
+Run:
+
 ```sh
 docker compose run --rm backup
 ```
 
-### Restore the latest backup
+### Restore the Latest Backup
 
-Run the following command to restore the latest backup of the database:
+Run:
+
 ```sh
 docker compose run --rm restore
 ```
 
-### Upgrading to a new version
+### Upgrading to a New Version
 
-New releases are announced in [Discussions](https://github.com/grit42/grit/discussions/categories/announcements) of the main repo on [GitHub](https://github.com/grit42/grit). Additional steps or warnings may be specified in the release announcement, please read it carefully before upgrading.
+Check [GitHub Discussions](https://github.com/grit42/grit/discussions/categories/announcements) for release notes.
 
-Run the following command to upgrade to the latest version:
+Upgrade with:
+
 ```sh
 docker compose pull app
 docker compose up --no-deps --force-recreate app
 ```
 
-## Upgrading from previous sample docker compose
+### Upgrading from Previous Sample Docker Compose
 
-1. Clone this repo or download and extract the [zip](https://github.com/grit42/grit-starter/archive/refs/heads/main.zip)
-2. Copy the content of `.env.template` to `.env`
-    * Some users may need to enable display of hidden files if using a file explorer
-3.  Ensure the values in the `.env` file match the environment in the compose file used to run the app before
-4.  In the directory containing the new `docker-compose.yml` file, start the new `db` service to create the volume
-    ```sh
-    docker compose up -d db
-    ```
-5.  In the directory containing the previous `docker-compose.yml` file, copy database files into the volume using a helper container, for example on a Unix system:
-    ```sh
-    docker run --rm \
-        -v ./postgres-data:/from \
-        -v grit_postgres_data:/to \
-        alpine \
-        sh -c "cd /from && tar cf - . | tar xf - -C /to"
-    ```
-6. Fix database files ownership
-    ```sh
-    docker run --rm \
-      -v grit_postgres_data:/data \
-      alpine \
-      chown -R 999:999 /data
-    ```
+1. Clone or download this repo.
+
+2. Copy `.env.template` to `.env`.
+
+3. Ensure `.env` values match the old configuration.
+
+4. Start the new database service:
+
+   ```sh
+   docker compose up -d db
+   ```
+
+5. Copy data from the old volume (example for Linux):
+
+   ```sh
+   docker run --rm \
+       -v ./postgres-data:/from \
+       -v grit_postgres_data:/to \
+       alpine \
+       sh -c "cd /from && tar cf - . | tar xf - -C /to"
+   ```
+
+6. Fix file permissions:
+
+   ```sh
+   docker run --rm \
+     -v grit_postgres_data:/data \
+     alpine \
+     chown -R 999:999 /data
+   ```
