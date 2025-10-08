@@ -250,7 +250,7 @@ This document provides step-by-step instructions for installing and running the 
 
 Some grit features (user management, password reset, two-factor authentication) require email.
 
-In `.env`, set the following variables:
+In `.env`, uncomment and set the following variables:
 
 ```sh
 SMTP_SERVER=smtp.example.com
