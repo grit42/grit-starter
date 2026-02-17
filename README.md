@@ -8,10 +8,11 @@ This document provides step-by-step instructions for installing and running the 
 * [Cloud Server Installation](#cloud-server-installation)
 * [Mail Service Configuration](#mail-service-configuration)
 * [Maintaining the App](#maintaining-the-app)
-    * [Backup the Database](#backup-the-database)
-    * [Restore the Latest Backup](#restore-the-latest-backup)
+    * [Backup Your Data](#backup-your-data)
+    * [Restore Your Data](#restore-your-data)
+    * [List Your Backups](#list-your-backups)
+    * [Clean Up Old Backups](#clean-up-old-backups)
     * [Upgrading to a New Version](#upgrading-to-a-new-version)
-    * [Upgrading from Previous Sample Docker Compose](#upgrading-from-previous-sample-docker-compose)
 ---
 
 ## Local Installation (Windows)
@@ -264,21 +265,111 @@ GRIT_SERVER_URL=https://yourdomain.com
 
 ## Maintaining the App
 
-### Backup the Database
+### Backup Your Data
 
-Run:
+Create a complete timestamped backup of both database and file storage:
 
 ```sh
 docker compose run --rm backup
 ```
 
-### Restore the Latest Backup
+This creates a compressed backup in `grit-backups/backups/<timestamp>/` including:
+- `database.sql.gz` - Compressed PostgreSQL dump
+- `file_storage.tar.gz` - Compressed file storage archive
+- `checksums.sha256` - Integrity verification checksums
 
-Run:
+List available backups:
+
+```sh
+docker compose run --rm backup-list
+```
+
+### Restore Your Data
+
+**Important**: Stop the app before restoring to prevent data conflicts:
+
+```sh
+docker compose stop app
+```
+
+Restore the latest backup:
 
 ```sh
 docker compose run --rm restore
 ```
+
+Restore a specific timestamped backup:
+
+```sh
+BACKUP_TIMESTAMP=2026-02-17_140530 docker compose run --rm restore
+```
+
+On Windows PowerShell, set the environment variable first:
+
+```powershell
+$env:BACKUP_TIMESTAMP="2026-02-17_140530"
+docker compose run --rm restore
+```
+
+Restart the app after restore:
+
+```sh
+docker compose start app
+```
+
+The restore process automatically verifies backup integrity using checksums before applying changes.
+
+### List Your Backups
+
+View all available backups with their sizes and integrity status:
+
+```sh
+docker compose run --rm backup-list
+```
+
+Example output:
+
+```
+=== grit backup list ===
+
+Found 3 backup(s):
+
+  TIMESTAMP              DATABASE    FILES       TOTAL       CHECKSUM
+  ---------------------  ----------  ----------  ----------  ----------
+  2026-02-17_103022      4.2M        98M         103M        OK
+  2026-02-18_064334      6.3M        101M        107M        OK
+  2026-02-18_065014      19K         98M         99M         OK          <- latest
+```
+
+### Clean Up Old Backups
+
+Remove old backups while keeping the most recent ones. By default, the last 5 backups are kept:
+
+```sh
+docker compose run --rm backup-cleanup
+```
+
+Preview what would be deleted without actually removing anything:
+
+```sh
+DRY_RUN=true docker compose run --rm backup-cleanup
+```
+
+Keep a different number of backups:
+
+```sh
+KEEP_LAST=3 docker compose run --rm backup-cleanup
+```
+
+On Windows PowerShell, set environment variables first:
+
+```powershell
+$env:DRY_RUN="true"
+$env:KEEP_LAST="3"
+docker compose run --rm backup-cleanup
+```
+
+The backup currently marked as "latest" is never deleted, regardless of the retention policy.
 
 ### Upgrading to a New Version
 
@@ -290,36 +381,3 @@ Upgrade with:
 docker compose pull app
 docker compose up --no-deps --force-recreate app
 ```
-
-### Upgrading from Previous Sample Docker Compose
-
-1. Clone or download this repo.
-
-2. Copy `.env.template` to `.env`.
-
-3. Ensure `.env` values match the old configuration.
-
-4. Start the new database service:
-
-   ```sh
-   docker compose up -d db
-   ```
-
-5. Copy data from the old volume (example for Linux):
-
-   ```sh
-   docker run --rm \
-       -v ./postgres-data:/from \
-       -v grit_postgres_data:/to \
-       alpine \
-       sh -c "cd /from && tar cf - . | tar xf - -C /to"
-   ```
-
-6. Fix file permissions:
-
-   ```sh
-   docker run --rm \
-     -v grit_postgres_data:/data \
-     alpine \
-     chown -R 999:999 /data
-   ```

@@ -10,7 +10,7 @@ services:
     platform: linux/amd64
     restart: unless-stopped
     volumes:
-      - grit_postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
 
   app:
     env_file:
@@ -25,47 +25,59 @@ services:
     image: "grit42com/grit:latest"
     platform: linux/amd64
     restart: unless-stopped
+    volumes:
+      - file_storage:/rails/apps/grit/server/storage
 
   backup:
     profiles: ["tools"]
     image: "grit42com/pgrdkit:16.3-2024.03.1"
     depends_on:
       - db
-    entrypoint: >
-      bash -c "
-      pg_dump -h db -U ${POSTGRES_USER} ${GRIT_DATABASE} > /backups/grit-db-backup.sql"
+    entrypoint: ["/bin/bash", "/backup-scripts/backup.sh"]
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - GRIT_DATABASE=${GRIT_DATABASE}
     volumes:
-      - ./grit-database-backups:/backups
+      - ./grit-backups:/backups
+      - file_storage:/file_storage:ro
+      - ./scripts/backup.sh:/backup-scripts/backup.sh:ro
 
   restore:
     profiles: ["tools"]
     image: "grit42com/pgrdkit:16.3-2024.03.1"
     depends_on:
       - db
-    entrypoint: >
-      bash -c "
-      if [ -f /backups/grit-db-backup.sql ]; then
-        echo 'Ensuring database ${GRIT_DATABASE} exists...';
-        psql -h db -U ${POSTGRES_USER} -d postgres -c \"SELECT 1 FROM pg_database WHERE datname = '${GRIT_DATABASE}'\" | grep -q 1 || \
-        psql -h db -U ${POSTGRES_USER} -d postgres -c \"CREATE DATABASE \\\"${GRIT_DATABASE}\\\"\";
-
-        echo 'Restoring from backup...';
-        psql -h db -U ${POSTGRES_USER} ${GRIT_DATABASE} < /backups/grit-db-backup.sql;
-      else
-        echo 'No backup file found at /backups/grit-db-backup.sql';
-        exit 1;
-      fi"
+    entrypoint: ["/bin/bash", "/backup-scripts/restore.sh"]
     environment:
       - POSTGRES_USER=${POSTGRES_USER}
       - PGPASSWORD=${POSTGRES_PASSWORD}
       - GRIT_DATABASE=${GRIT_DATABASE}
+      - BACKUP_TIMESTAMP=${BACKUP_TIMESTAMP:-latest}
     volumes:
-      - ./grit-database-backups:/backups
+      - ./grit-backups:/backups
+      - file_storage:/file_storage
+      - ./scripts/restore.sh:/backup-scripts/restore.sh:ro
+
+  backup-list:
+    profiles: ["tools"]
+    image: "grit42com/pgrdkit:16.3-2024.03.1"
+    entrypoint: ["/bin/bash", "/backup-scripts/backup-list.sh"]
+    volumes:
+      - ./grit-backups:/backups:ro
+      - ./scripts/backup-list.sh:/backup-scripts/backup-list.sh:ro
+
+  backup-cleanup:
+    profiles: ["tools"]
+    image: "grit42com/pgrdkit:16.3-2024.03.1"
+    environment:
+      - KEEP_LAST=${KEEP_LAST:-5}
+      - DRY_RUN=${DRY_RUN:-false}
+    entrypoint: ["/bin/bash", "/backup-scripts/backup-cleanup.sh"]
+    volumes:
+      - ./grit-backups:/backups
+      - ./scripts/backup-cleanup.sh:/backup-scripts/backup-cleanup.sh:ro
 
 volumes:
-  grit_postgres_data:
-    name: grit_postgres_data
+  postgres_data:
+  file_storage:
